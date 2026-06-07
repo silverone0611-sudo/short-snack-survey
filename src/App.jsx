@@ -96,7 +96,7 @@ const PRINGLES_VIEWBOX = "0 0 1589 1027";
 const PRINGLES_HOTSPOTS = [
   {
     id: "body_print",
-    label: "원통 본체",
+    label: "겉 인쇄 코팅면",
     correctBin: "general",
     z: 20,
     svg: {
@@ -1227,7 +1227,7 @@ function GameStep({
 
           {mode === "separate" && (
             <div className="piece-help">
-              분리배출을 완료했다고 생각하면 아래의 버튼을 누르세요.
+              찾은 부분만 선택해도 됩니다. 선택한 만큼 기록한 뒤 결과 화면으로 이동합니다.
             </div>
           )}
 
@@ -1238,7 +1238,7 @@ function GameStep({
           )}
 
           <button type="button" onClick={finishCurrentGameItem}>
-            {mode === "separate" ? "다음으로" : "다음으로"}
+            {mode === "separate" ? "선택한 만큼 제출하기" : "선택 완료"}
           </button>
         </>
       )}
@@ -1727,8 +1727,7 @@ function LearningGuideStep({ onNext }) {
           겉 인쇄 코팅면, 속 은박 코팅면, 실링용 속뚜껑은 일반쓰레기로 배출해야 합니다. 
           겉과 속 코팅을 벗겨 낸 종이 면은 종이류, 겉뚜껑은 플라스틱, 바닥면은 금속으로 배출해야 합니다.
          <br />
-          사실상 바닥면 금속을 본체에서 쉽게 분리할 수 없으므로, <br /><span className="learning-summary-emphasis">플라스틱 뚜껑을 제외한 통 전체를 '일반쓰레기'로 배출</span>해야 합니다.       
-        </p>
+          사실상 바닥면 금속을 본체에서 쉽게 분리할 수 없으므로, <br /><span className="learning-summary-emphasis">플라스틱 뚜껑을 제외한 통 전체를 '일반쓰레기'로 배출</span>해야 합니다.         </p>
       </div>
 
       <button type="button" onClick={onNext}>
