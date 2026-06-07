@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { supabase } from "./supabaseClient";
 import "./App.css";
 
 const STORAGE_KEY = "short_snack_survey_draft_v6";
@@ -332,6 +333,7 @@ export default function App() {
   const [step, setStep] = useState(savedDraft.step);
   const [survey, setSurvey] = useState(savedDraft.survey);
   const [binModal, setBinModal] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(
@@ -711,32 +713,91 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function finishPostSurvey() {
+  async function finishPostSurvey() {
+    if (isSubmitting) return;
+
     if (!survey.postSurvey.q12_purchase_intent) {
-      alert("앞으로 구매할 것인지 선택하세요.");
+    alert("앞으로 구매할 것인지 선택하세요.");
+    return;
+  }
+
+  if ((survey.postSurvey.q13_purchase_reasons || []).length === 0) {
+    alert("구매의향 이유를 1개 이상 선택하세요.");
+    return;
+  }
+
+  if (
+    survey.postSurvey.q13_purchase_reasons?.includes("기타") &&
+    !survey.postSurvey.q13_other?.trim()
+  ) {
+    alert("기타를 선택한 경우 내용을 입력하세요.");
+    return;
+  }
+
+  const submittedAt = new Date().toISOString();
+
+  const nextSurvey = {
+    ...survey,
+    submittedAt,
+  };
+
+  const row = {
+    respondent_no: nextSurvey.respondentNo,
+    grade: nextSurvey.grade,
+    gender: nextSurvey.gender,
+
+    q1_package_preference: nextSurvey.preSurvey?.q1 || "",
+    q2_preference_reasons: (nextSurvey.preSurvey?.q2 || []).join(" | "),
+
+    q3_storage_convenience:
+      nextSurvey.perceptionSurvey?.q4_storage_convenience || "",
+    q4_portable_convenience:
+      nextSurvey.perceptionSurvey?.q5_portable_convenience || "",
+
+    q5_after_game_difficulty: nextSurvey.afterGame?.q6_difficulty || "",
+    q6_after_game_environment: nextSurvey.afterGame?.q7_environment || "",
+
+    game_score: nextSurvey.game?.score ?? 0,
+    game_max_score: nextSurvey.game?.maxScore ?? 0,
+    game_logs: nextSurvey.game?.logs || [],
+
+    q7_after_learning_difficulty:
+      nextSurvey.postLearning?.q10_difficulty_after_learning || "",
+    q8_after_learning_environment:
+      nextSurvey.postLearning?.q11_environment_after_learning || "",
+
+    q9_purchase_intent: nextSurvey.postSurvey?.q12_purchase_intent || "",
+    q10_purchase_reasons:
+      (nextSurvey.postSurvey?.q13_purchase_reasons || []).join(" | "),
+    q10_other: nextSurvey.postSurvey?.q13_other || "",
+
+    survey_json: nextSurvey,
+    submitted_at: submittedAt,
+  };
+
+  try {
+    setIsSubmitting(true);
+
+    const { error } = await supabase
+      .from("short_snack_survey_responses")
+      .insert(row);
+
+    if (error) {
+      console.error("Supabase 저장 오류:", error);
+      alert(`응답 저장 중 오류가 발생했습니다.\n\n${error.message}`);
       return;
     }
 
-    if ((survey.postSurvey.q13_purchase_reasons || []).length === 0) {
-      alert("구매의향 이유를 1개 이상 선택하세요.");
-      return;
-    }
-
-    if (
-      survey.postSurvey.q13_purchase_reasons?.includes("기타") &&
-      !survey.postSurvey.q13_other?.trim()
-    ) {
-      alert("기타를 선택한 경우 내용을 입력하세요.");
-      return;
-    }
-
-    setSurvey((prev) => ({
-      ...prev,
-      submittedAt: new Date().toISOString(),
-    }));
+    setSurvey(nextSurvey);
     setStep("done");
     window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (error) {
+    console.error("제출 처리 오류:", error);
+    alert(`제출 처리 중 오류가 발생했습니다.\n\n${error.message || error}`);
+  } finally {
+    setIsSubmitting(false);
   }
+}
 
   function resetDraft() {
     const ok = confirm("임시 저장된 응답을 모두 지울까요?");
@@ -827,6 +888,7 @@ export default function App() {
             updatePost={updatePost}
             togglePostReason={togglePostReason}
             finishPostSurvey={finishPostSurvey}
+            isSubmitting={isSubmitting}
           />
         )}
 
@@ -886,7 +948,7 @@ function BasicSurveyStep({ survey, updateBasic, finishBasicSurvey }) {
       <p className="desc">
                 안녕하세요. 저희는 '해석의 조건'입니다.
         <br />
-        저희는 원통형 포장 과장에 대한 인식과 태도가 궁금하여 연구를 진행 중입니다.
+        저희는 원통형 포장 과자에 대한 인식과 태도가 궁금하여 연구를 진행 중입니다.
         <br />
         평소 생각대로 대답해 주시기 바랍니다.
       </p>
@@ -1769,7 +1831,13 @@ function PostLearningStep({ survey, updatePostLearning, finishPostLearningStep }
   );
 }
 
-function PostSurveyStep({ survey, updatePost, togglePostReason, finishPostSurvey }) {
+function PostSurveyStep({
+  survey,
+  updatePost,
+  togglePostReason,
+  finishPostSurvey,
+  isSubmitting,
+}) {
   const postSurvey = survey.postSurvey || {};
   const selectedReasons = postSurvey.q13_purchase_reasons || [];
   const hasOtherReason = selectedReasons.includes("기타");
@@ -1820,8 +1888,8 @@ function PostSurveyStep({ survey, updatePost, togglePostReason, finishPostSurvey
         )}
       </div>
 
-      <button type="button" onClick={finishPostSurvey}>
-        설문 제출하기
+      <button type="button" onClick={finishPostSurvey} disabled={isSubmitting}>
+  {isSubmitting ? "저장 중..." : "설문 제출하기"}
       </button>
     </>
   );
