@@ -1598,18 +1598,3 @@ button:disabled {
   font-size: 17px;
   font-weight: 800;
 }
-
-.learning-summary-emphasis {
-  color: #dc2626;
-  font-weight: 900;
-}
-
-.final-snack-note {
-  color: #111827 !important;
-  font-weight: 400 !important;
-}
-
-.final-snack-place {
-  color: #1d4ed8;
-  font-weight: 900;
-}
