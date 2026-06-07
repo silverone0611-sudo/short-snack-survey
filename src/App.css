@@ -1598,3 +1598,42 @@ button:disabled {
   font-size: 17px;
   font-weight: 800;
 }
+
+/* 학습 이미지 크기 최종 강제 적용 */
+.learning-image-box {
+  width: calc(100% + 48px) !important;
+  margin: 16px -24px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.learning-image-box img {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: auto !important;
+  max-height: none !important;
+  border-radius: 0 !important;
+  object-fit: contain !important;
+  margin: 0 auto !important;
+}
+
+@media (max-width: 480px) {
+  .learning-image-box {
+    width: calc(100% + 24px) !important;
+    margin-left: -12px !important;
+    margin-right: -12px !important;
+  }
+}
+
+.learning-image-box img {
+  max-height: none !important;
+}
+
+.learning-summary-emphasis {
+  color: #dc2626;
+  font-weight: 900;
+}
