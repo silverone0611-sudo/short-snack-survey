@@ -886,7 +886,7 @@ function BasicSurveyStep({ survey, updateBasic, finishBasicSurvey }) {
       <p className="desc">
                 안녕하세요. 저희는 '해석의 조건'입니다.
         <br />
-        저희가 원통형 과자 포장에 대한 인식과 태도가 궁금하여 연구를 진행 중입니다.
+        저희는 원통형 포장 과장에 대한 인식과 태도가 궁금하여 연구를 진행 중입니다.
         <br />
         평소 생각대로 대답해 주시기 바랍니다.
       </p>
@@ -1002,7 +1002,7 @@ function PerceptionStep({ survey, updatePerception, finishPerceptionStep }) {
       <h2>2단계. 원통형 포장 인식</h2>
 
       <p className="desc">
-        원통형 과자 포장에 대한 생각을 골라 주세요.
+        원통형 포장에 대한 생각을 골라 주세요.
       </p>
 
       {CONVENIENCE_ITEMS.map((item) => (
@@ -1709,14 +1709,14 @@ function LearningGuideStep({ onNext }) {
       <h2>6단계. 실제 분리배출 방법 확인</h2>
 
       <p className="desc">
-        원통형 과자 포장은 여러 재질이 결합되어 있어 부분별로 배출 방법이 다릅니다.
+        원통형 포장은 여러 재질이 결합되어 있어 부분별로 배출 방법이 다릅니다.
         아래 이미지를 보고 실제 분리배출 방법을 확인하세요.
       </p>
 
       <div className="learning-image-box">
         <img
           src="/images/pringles_separation_guide.png"
-          alt="원통형 과자 포장재 구성과 분리배출 방법 안내"
+          alt="원통형 포장재 구성과 분리배출 방법 안내"
         />
       </div>
 
@@ -1858,10 +1858,6 @@ function DoneStep({ survey, resetDraft }) {
         <strong>응답자 번호</strong>
         <p>{survey.respondentNo}</p>
       </div>
-
-      <button type="button" className="secondary" onClick={resetDraft}>
-        새 응답 시작하기
-      </button>
     </>
   );
 }
