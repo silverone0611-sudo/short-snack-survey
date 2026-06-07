@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-const STORAGE_KEY = "short_snack_survey_draft_v5";
+const STORAGE_KEY = "short_snack_survey_draft_v6";
 
 const PACKAGING_ITEM = {
   id: "q1",
@@ -26,11 +26,11 @@ const PACKAGING_ITEM = {
 const CONVENIENCE_ITEMS = [
   {
     id: "q4_storage_convenience",
-    title: "4. 원통형 포장은 남은 과자를 보관하기 편하다고 생각한다.",
+    title: "3. 원통형 포장은 남은 과자를 보관하기 편하다고 생각한다.",
   },
   {
     id: "q5_portable_convenience",
-    title: "5. 원통형 포장은 들고 다니며 먹기 편하다고 생각한다.",
+    title: "4. 원통형 포장은 들고 다니며 먹기 편하다고 생각한다.",
   },
 ];
 
@@ -499,6 +499,15 @@ export default function App() {
         },
       };
     });
+
+    if (mode === "no_separation") {
+      setBinModal({
+        type: "game",
+        partId: "__whole_package",
+        title: "포장 전체를 어디에 버릴까요?",
+        desc: "분리배출하지 않고 버린다고 생각한 배출함을 선택하세요.",
+      });
+    }
   }
 
   function assignGamePartBin(partId, binId) {
@@ -579,7 +588,7 @@ export default function App() {
     const selectedMap = survey.game.selectedParts[item.id] || {};
 
     if (!mode) {
-      alert("먼저 ‘분리할 부분 없음’ 또는 ‘분리할 부분 있음’을 선택하세요.");
+      alert("먼저 ‘분리배출 안 한다’ 또는 ‘분리배출 한다’를 선택하세요.");
       return;
     }
 
@@ -607,15 +616,6 @@ export default function App() {
       }));
 
       moveToAfterGame(logs, 0, item.hotspots.length);
-      return;
-    }
-
-    const selectedPartCount = Object.keys(selectedMap).filter(
-      (key) => !key.startsWith("__")
-    ).length;
-
-    if (selectedPartCount === 0) {
-      alert("분리할 부분이 있다고 선택한 경우, 이미지에서 분리할 부분을 최소 1개 이상 터치하세요.");
       return;
     }
 
@@ -673,22 +673,6 @@ export default function App() {
     setStep("afterGame");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-
-  useEffect(() => {
-    if (step !== "game") return;
-
-    const item = GAME_ITEMS[survey.game.currentIndex];
-    const mode = item ? survey.game.modes[item.id] || "" : "";
-    const selectedMap = item ? survey.game.selectedParts[item.id] || {} : {};
-
-    if (!isGameItemAutoComplete(item, mode, selectedMap)) return;
-
-    const timer = window.setTimeout(() => {
-      finishCurrentGameItem();
-    }, 450);
-
-    return () => window.clearTimeout(timer);
-  }, [step, survey.game.currentIndex, survey.game.modes, survey.game.selectedParts]);
 
   function finishAfterGame() {
     if (!survey.afterGame.q6_difficulty || !survey.afterGame.q7_environment) {
@@ -803,6 +787,7 @@ export default function App() {
             assignGamePartBin={assignGamePartBin}
             removeGamePartSelection={removeGamePartSelection}
             openGameBinModal={openGameBinModal}
+            finishCurrentGameItem={finishCurrentGameItem}
           />
         )}
 
@@ -944,10 +929,6 @@ function BasicSurveyStep({ survey, updateBasic, finishBasicSurvey }) {
         다음으로
       </button>
 
-      <div className="respondent-box">
-        <strong>자동 생성된 응답자 번호</strong>
-        <p>{survey.respondentNo}</p>
-      </div>
     </>
   );
 }
@@ -958,7 +939,7 @@ function PreferenceStep({ item, survey, updatePre, togglePreReason, nextPre }) {
 
   return (
     <>
-      <h2>2단계. 포장 선호도</h2>
+      <h2>1단계. 포장 선호도</h2>
 
       <div className="question">
         <QuestionTitle no={item.displayNo} text={item.title} />
@@ -1019,7 +1000,7 @@ function PerceptionStep({ survey, updatePerception, finishPerceptionStep }) {
 
   return (
     <>
-      <h2>3단계. 원통형 포장 인식</h2>
+      <h2>2단계. 원통형 포장 인식</h2>
 
       <p className="desc">
         원통형 과자 포장에 대한 생각을 골라 주세요.
@@ -1053,6 +1034,7 @@ function GameStep({
   assignGamePartBin,
   removeGamePartSelection,
   openGameBinModal,
+  finishCurrentGameItem,
 }) {
   const item = GAME_ITEMS[game.currentIndex];
   const [activePieceId, setActivePieceId] = useState("");
@@ -1173,22 +1155,20 @@ function GameStep({
 
   return (
     <>
-      <h2>4단계. 분리배출 게임</h2>
+      <h2>3단계. 분리배출 게임</h2>
 
       <p className="desc game-desc">
-        원통형 포장 이미지를 보고, 버릴 때 어떻게 처리할지 선택하세요. 우선{" "}
-        <span className="game-touch-emphasis">분리할 부분</span>{" "}이 있는지 없는지{" "}
-        <span className="game-touch-emphasis">선택</span>하세요. 다음으로{" "}
-        <span className="game-touch-emphasis">버리고자 하는 부분</span>을 터치하면
-        배출함 선택창이 뜹니다.
+        원통형 포장을 버릴 때 어떻게 처리할지 선택하세요.
+        <span className="game-touch-emphasis"> 분리배출 안 한다</span>를 누르면 바로 배출함 선택창이 열립니다.
+        <span className="game-touch-emphasis"> 분리배출 한다</span>를 누르면 버릴 부분을 터치해서 배출함을 고를 수 있습니다.
       </p>
 
       <div className="game-choice-buttons">
         <button type="button" onClick={() => chooseGameMode("no_separation")}>
-          분리할 부분 없음
+          분리배출 안 한다
         </button>
         <button type="button" onClick={() => chooseGameMode("separate")}>
-          분리할 부분 있음
+          분리배출 한다
         </button>
       </div>
 
@@ -1210,7 +1190,10 @@ function GameStep({
           activePieceId={activePieceId}
           isMobileLike={isMobileLike}
           onSelect={(partId) => setActivePieceId(partId)}
-          onMobileTap={(part) => openGameBinModal(part.id, part.label)}
+          onMobileTap={(part) => {
+            setActivePieceId(part.id);
+            openGameBinModal(part.id, part.label);
+          }}
           onDragStart={(partId, event) => startDragPiece(partId, event)}
           onDragEnd={() => setDraggingPieceId("")}
         />
@@ -1242,11 +1225,21 @@ function GameStep({
             />
           )}
 
-          {isGameItemAutoComplete(item, mode, selectedMap) && (
-            <div className="auto-next-notice">
-              선택이 완료되었습니다. 다음 화면으로 이동합니다.
+          {mode === "separate" && (
+            <div className="piece-help">
+              분리배출을 완료했다고 생각하면 아래의 버튼을 누르세요.
             </div>
           )}
+
+          {mode === "separate" && isGameItemAutoComplete(item, mode, selectedMap) && (
+            <div className="auto-next-notice">
+              모든 부분을 선택했습니다. 아래 버튼을 누르면 결과 화면으로 이동합니다.
+            </div>
+          )}
+
+          <button type="button" onClick={finishCurrentGameItem}>
+            {mode === "separate" ? "다음으로" : "다음으로"}
+          </button>
         </>
       )}
 
@@ -1342,6 +1335,12 @@ function MaskedGameImage({
 }) {
   const removedParts = item.hotspots.filter((part) => selectedMap[part.id]?.selectedBin);
   const selectableParts = item.hotspots.filter((part) => !selectedMap[part.id]?.selectedBin);
+  const activePart = activePieceId
+    ? selectableParts.find((part) => part.id === activePieceId)
+    : null;
+  const highlightedParts = activePart
+    ? [{ ...activePart, highlightType: "active" }]
+    : [];
 
   return (
     <div className="layer-game-box">
@@ -1374,6 +1373,24 @@ function MaskedGameImage({
               <MaskShape key={`mask-${part.id}`} part={part} />
             ))}
         </svg>
+
+        {highlightedParts.length > 0 && (
+          <svg
+            className="mask-game-selected-svg"
+            viewBox={item.viewBox || "0 0 1000 1000"}
+            preserveAspectRatio="xMidYMid meet"
+            aria-hidden="true"
+          >
+            {highlightedParts
+              .sort((a, b) => (a.z || 0) - (b.z || 0))
+              .map((part) => (
+                <MaskSelectedShape
+                  key={`selected-${part.id}-${part.highlightType}`}
+                  part={part}
+                />
+              ))}
+          </svg>
+        )}
 
         <svg
           className="mask-game-hit-svg"
@@ -1418,6 +1435,23 @@ function MaskShape({ part }) {
   return null;
 }
 
+function MaskSelectedShape({ part }) {
+  const className =
+    part.highlightType === "active"
+      ? "mask-game-selected-shape active"
+      : "mask-game-selected-shape";
+
+  if (part.svg.type === "polygon") {
+    return <polygon className={className} points={part.svg.points} />;
+  }
+
+  if (part.svg.type === "path") {
+    return <path className={className} d={part.svg.d} />;
+  }
+
+  return null;
+}
+
 function MaskHitShape({
   part,
   selected,
@@ -1434,6 +1468,7 @@ function MaskHitShape({
     onClick: (event) => {
       if (isMobileLike) {
         event.preventDefault();
+        onSelect();
         onMobileTap();
         return;
       }
@@ -1542,11 +1577,11 @@ function BinOption({ bin, onChoose }) {
 function AfterGameStep({ survey, updateAfterGame, finishAfterGame }) {
   return (
     <>
-      <h2>5단계. 게임 후 생각</h2>
+      <h2>4단계. 게임 후 생각</h2>
       <p className="desc">분리배출 게임을 해 본 뒤, 현재 생각에 가장 가까운 답을 선택하세요.</p>
 
       <LikertQuestion
-        title="6. 원통형 포장은 분리배출이 어렵다고 생각한다."
+        title="5. 원통형 포장은 분리배출이 어렵다고 생각한다."
         name="q6_difficulty"
         value={survey.afterGame?.q6_difficulty || ""}
         onChange={(value) => updateAfterGame("q6_difficulty", value)}
@@ -1554,7 +1589,7 @@ function AfterGameStep({ survey, updateAfterGame, finishAfterGame }) {
       />
 
       <LikertQuestion
-        title="7. 원통형 포장은 환경 측면에서 부담이 큰 포장이라고 생각한다."
+        title="6. 원통형 포장은 환경 측면에서 부담이 큰 포장이라고 생각한다."
         name="q7_environment"
         value={survey.afterGame?.q7_environment || ""}
         onChange={(value) => updateAfterGame("q7_environment", value)}
@@ -1619,7 +1654,7 @@ function ScoreResultStep({ game, onNext }) {
 
   return (
     <>
-      <h2>6단계. 내 점수 확인</h2>
+      <h2>5단계. 내 점수 확인</h2>
 
       <p className="desc">
         분리배출 게임 결과를 확인하세요. 다음 화면에서 실제 원통형 포장재의 분리배출 방법을 학습합니다.
@@ -1672,7 +1707,7 @@ function ScoreResultStep({ game, onNext }) {
 function LearningGuideStep({ onNext }) {
   return (
     <>
-      <h2>7단계. 실제 분리배출 방법 확인</h2>
+      <h2>6단계. 실제 분리배출 방법 확인</h2>
 
       <p className="desc">
         원통형 과자 포장은 여러 재질이 결합되어 있어 부분별로 배출 방법이 다릅니다.
@@ -1689,13 +1724,15 @@ function LearningGuideStep({ onNext }) {
       <div className="learning-summary-box">
         <strong>핵심 정리</strong>
         <p>
-          겉 코팅 인쇄면과 속 은박 코팅면, 실링용 속뚜껑은 일반쓰레기로 배출합니다.
-          종이 면은 종이류, 겉뚜껑은 플라스틱, 바닥면은 금속으로 분리합니다.
+          겉 인쇄 코팅면, 속 은박 코팅면, 실링용 속뚜껑은 일반쓰레기로 배출해야 합니다. 
+          겉과 속 코팅을 벗겨 낸 종이 면은 종이류, 겉뚜껑은 플라스틱, 바닥면은 금속으로 배출해야 합니다.
+         <br />
+          사실상 바닥면 금속을 본체에서 쉽게 분리할 수 없으므로, <br /><span className="learning-summary-emphasis">플라스틱 뚜껑을 제외한 통 전체를 '일반쓰레기'로 배출</span>해야 합니다.       
         </p>
       </div>
 
       <button type="button" onClick={onNext}>
-        학습 후 생각 답하기
+        다음으로
       </button>
     </>
   );
@@ -1706,13 +1743,13 @@ function PostLearningStep({ survey, updatePostLearning, finishPostLearningStep }
 
   return (
     <>
-      <h2>8단계. 학습 후 생각</h2>
+      <h2>7단계. 학습 후 생각</h2>
       <p className="desc">
         점수와 실제 분리배출 방법을 확인한 뒤, 현재 생각에 가장 가까운 답을 선택하세요.
       </p>
 
       <LikertQuestion
-        title="10. 원통형 포장은 분리배출이 어렵다고 생각한다."
+        title="7. 원통형 포장은 분리배출이 어렵다고 생각한다."
         name="q10_difficulty_after_learning"
         value={postLearning.q10_difficulty_after_learning || ""}
         onChange={(value) => updatePostLearning("q10_difficulty_after_learning", value)}
@@ -1720,7 +1757,7 @@ function PostLearningStep({ survey, updatePostLearning, finishPostLearningStep }
       />
 
       <LikertQuestion
-        title="11. 원통형 포장은 환경 측면에서 부담이 큰 포장이라고 생각한다."
+        title="8. 원통형 포장은 환경 측면에서 부담이 큰 포장이라고 생각한다."
         name="q11_environment_after_learning"
         value={postLearning.q11_environment_after_learning || ""}
         onChange={(value) => updatePostLearning("q11_environment_after_learning", value)}
@@ -1741,10 +1778,10 @@ function PostSurveyStep({ survey, updatePost, togglePostReason, finishPostSurvey
 
   return (
     <>
-      <h2>9단계. 앞으로 구매할 것인가</h2>
+      <h2>8단계. 앞으로 구매할 것인가</h2>
 
       <LikertQuestion
-        title="12. 앞으로 원통형 포장 과자를 구입하거나 먹을 생각이 있나요?"
+        title="9. 앞으로 원통형 포장 과자를 구입하거나 먹을 생각이 있나요?"
         name="q12_purchase_intent"
         value={postSurvey.q12_purchase_intent || ""}
         onChange={(value) => updatePost("q12_purchase_intent", value)}
@@ -1753,7 +1790,7 @@ function PostSurveyStep({ survey, updatePost, togglePostReason, finishPostSurvey
 
       <div className="question post-reason-question">
         <QuestionTitle
-          no="13"
+          no="10"
           text="그렇게 답한 데 영향을 준 이유를 모두 고르시오."
           note="복수 체크 가능"
         />
@@ -1805,8 +1842,8 @@ function DoneStep({ survey, resetDraft }) {
 
       <div className="event-final-box">
         <strong>설문 참여자 간식 안내</strong>
-        <p className="event-entry-note">
-          설문을 완료한 학생은 1층 교무실 김선미 선생님께 찾아가 간식을 받아가세요.
+        <p className="event-entry-note final-snack-note">
+  설문을 완료한 학생은 <span className="final-snack-place">1층 교무실 김선미 선생님</span>께 찾아가 이 화면을 보여드리고 간식을 받아가세요.
         </p>
       </div>
 
