@@ -884,12 +884,11 @@ function BasicSurveyStep({ survey, updateBasic, finishBasicSurvey }) {
       <h1>과자 포장에 대한 인식과 태도 조사</h1>
 
       <p className="desc">
-        이 설문은 원통형 과자 포장이 얼마나 편리하게 느껴지는지,
-        그리고 분리배출할 때 어떤 어려움이 있는지 알아보기 위한 조사입니다.
+                안녕하세요. 저희는 '해석의 조건'입니다.
+        <br />
+        저희가 원통형 과자 포장에 대한 인식과 태도가 궁금하여 연구를 진행 중입니다.
         <br />
         평소 생각대로 대답해 주시기 바랍니다.
-        <br />
-        원통형 과자를 먹어 본 적이 없어도 이미지와 설명을 보고 응답할 수 있습니다.
       </p>
 
       <div className="event-notice-box">
