@@ -1226,7 +1226,7 @@ function GameStep({
 
           {mode === "separate" && (
             <div className="piece-help">
-              찾은 부분만 선택해도 됩니다. 선택한 만큼 기록한 뒤 결과 화면으로 이동합니다.
+              분리배출을 완료했다고 생각하면 아래의 버튼을 누르세요.
             </div>
           )}
 
@@ -1237,7 +1237,7 @@ function GameStep({
           )}
 
           <button type="button" onClick={finishCurrentGameItem}>
-            {mode === "separate" ? "선택한 만큼 제출하기" : "선택 완료"}
+            {mode === "separate" ? "다음으로" : "다음으로"}
           </button>
         </>
       )}
@@ -1697,7 +1697,7 @@ function ScoreResultStep({ game, onNext }) {
       </div>
 
       <button type="button" onClick={onNext}>
-        실제 분리배출 방법 보기
+        다음으로
       </button>
     </>
   );
@@ -1743,7 +1743,7 @@ function PostLearningStep({ survey, updatePostLearning, finishPostLearningStep }
     <>
       <h2>7단계. 학습 후 생각</h2>
       <p className="desc">
-        점수와 실제 분리배출 방법을 확인한 뒤, 현재 생각에 가장 가까운 답을 선택하세요.
+        현재 생각에 가장 가까운 답을 선택하세요.
       </p>
 
       <LikertQuestion
